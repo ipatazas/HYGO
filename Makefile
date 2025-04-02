@@ -1,5 +1,10 @@
-.PHONY: test prepforbuild artifacts uploadbuild release
+.PHONY: clean test prepforbuild artifacts uploadbuild release
 
+# Prior to execution update the versions in setup.py and pyproject.toml
+
+# Remove any existing build, dist, or egg-info folders
+clean:
+	rm -rf build dist *.egg-info
 
 # Prepare the build environment
 prepforbuild:
@@ -11,8 +16,8 @@ artifacts: test
 
 # Upload artifacts to PyPI
 uploadbuild: artifacts
-	python3 -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+	python3 -m twine upload dist/*
 
 # Full release process: prepare, build, and upload
-release: prepforbuild artifacts uploadbuild
+release: clean prepforbuild artifacts uploadbuild
 	@echo "Release completed successfully!"
