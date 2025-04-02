@@ -1,5 +1,5 @@
 from HYGO.HYGO import HYGO
-from Plant.CheckParams import Parameters
+from examples.CheckParams import Parameters
 import os
 import matplotlib.pyplot as plt
 

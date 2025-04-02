@@ -830,7 +830,7 @@ class Individual():
 
 if __name__=='__main__':
 
-    from ..Plant.parameters_control_law import Parameters
+    from ..examples.parameters_control_law import Parameters
     from ..HYGO_tools.chromosome_to_params import chromosome_to_params
 
     HYGO_params = Parameters

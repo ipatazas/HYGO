@@ -1,5 +1,5 @@
 from HYGO.HYGO import HYGO
-from Plant.parameters_control_law import Parameters
+from examples.parameters_control_law import Parameters
 import os
 
 HYGO_params = Parameters()
