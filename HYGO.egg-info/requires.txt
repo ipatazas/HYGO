@@ -1,0 +1,6 @@
+dill>=0.3.0
+matplotlib>=3.0
+numpy<2.0,>=1.16
+pandas>=0.25
+scipy>=1.15
+scipy>=1.3
