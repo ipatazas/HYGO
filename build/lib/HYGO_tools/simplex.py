@@ -1,5 +1,5 @@
 import numpy as np
-from ..HYGO_source.individual import *
+from ..HYGO.individual import *
 from scipy.optimize import curve_fit
 import copy
 import HYGO_source

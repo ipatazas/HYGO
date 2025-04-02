@@ -7,7 +7,7 @@ setup(
     author='Isaac Robledo Martín',
     packages=find_packages(),  # Automatically finds all packages (HYGO, HYGO_tools, Plant, etc.)
     install_requires=[
-        'numpy>=1.16',
+        'numpy>=1.16,<2.0',
         'scipy>=1.3',
         'matplotlib>=3.0',
         'pandas>=0.25',
