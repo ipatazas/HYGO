@@ -29,6 +29,6 @@ result.save()
 result.save(specific_save=True)
 
 # Plot the results
-result.convergence(PATH)
+result.convergence(save=PATH)
 
 print('done')
