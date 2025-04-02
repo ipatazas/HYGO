@@ -1,14 +1,21 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: HYGO
-Version: 0.1.0
-Summary: HYGO: A genetic optimization framework
+Version: 0.9.0
+Summary: HYbrid Genetic Optimizer mixing parametric genetic optimization with genetic programming
 Home-page: https://github.com/ipatazas/HYGO
 Author: Isaac Robledo Martín
-License: UNKNOWN
-Platform: UNKNOWN
+Author-email: Isaac Robledo Martin <isaac.robledo.martin@gmail.com>
+License: MIT
+Project-URL: Homepage, https://github.com/iatazas/HYGO
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
 
 # HYGO
-

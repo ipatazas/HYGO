@@ -5,7 +5,6 @@ setup.py
 HYGO.egg-info/PKG-INFO
 HYGO.egg-info/SOURCES.txt
 HYGO.egg-info/dependency_links.txt
-HYGO.egg-info/requires.txt
 HYGO.egg-info/top_level.txt
 examples/RosenbrockParameter.py
 examples/__init__.py
