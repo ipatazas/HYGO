@@ -1,10 +1,10 @@
 from hygo import HYGO
-from parameters_control_law import Parameters
+from RosenbrockParameter import Parameters
 import os
 import matplotlib.pyplot as plt
 
+# Create the Parameters
 HYGO_params = Parameters()
-#Import the results
 
 # Select the Path
 PATH = 'output/'

@@ -1,3 +1,2 @@
-HYGO_source
-HYGO_tools
 examples
+hygo

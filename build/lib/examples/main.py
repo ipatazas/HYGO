@@ -1,4 +1,4 @@
-from HYGO_source.HYGO import HYGO
+from hygo.HYGO import HYGO
 from examples.CheckParams import Parameters
 import os
 import matplotlib.pyplot as plt

@@ -73,7 +73,7 @@ class Parameters:
     limit_evaluations = True # bool to limit number of evaluations
     
     ################################ CONTROL LAW PARAMS ################################
-    from ..HYGO_tools.operations import operations
+    from ..hygo.tools.operations import operations
     operations = operations
     precission = 5
     
@@ -182,7 +182,7 @@ class Parameters:
         for i in range(self.control_inputs):
             self.ControlPoints[i,:] = self.ControlPoints[i,:]*(self.Sensor_range[i][1]-self.Sensor_range[i][0]) + self.Sensor_range[i][0]
 
-from ..HYGO_source.individual import *
+from ..hygo.individual import *
 from scipy.integrate import solve_ivp,cumulative_trapezoid
 import time
 

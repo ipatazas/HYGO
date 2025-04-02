@@ -1,4 +1,4 @@
-from HYGO_source.HYGO import HYGO
+from hygo.HYGO import HYGO
 from examples.parameters_control_law import Parameters
 import os
 
