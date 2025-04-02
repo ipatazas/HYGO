@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='HYGO',
-    version='0.9.2',
+    version='0.9.3',
     description='HYGO: A genetic optimization framework',
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
