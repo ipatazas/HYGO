@@ -16,6 +16,8 @@ result = HYGO(HYGO_params,output_path = PATH)
 # result = HYGO.load_security(PATH)
 #Run the genetic algorithm
 result.help()
+breakpoint()
+result.go()
 
 # result.save()
 # result.save(specific_save=True)

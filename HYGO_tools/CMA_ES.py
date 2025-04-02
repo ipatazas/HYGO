@@ -1,5 +1,5 @@
 import numpy as np
-from source.individual import *
+from ..HYGO.individual import *
 
 class CMA_ES:
     """

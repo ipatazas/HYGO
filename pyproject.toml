@@ -13,7 +13,7 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/hygo"
+"Homepage" = "https://github.com/iatazas/HYGO"
 
 [build-system]
 requires = ["setuptools>=61.0"]

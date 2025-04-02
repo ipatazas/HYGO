@@ -1,8 +1,9 @@
 __author__ = 'Isaac Robledo Martín'
 
 import numpy as np
-from GA_tools.chromosome_to_params import chromosome_to_params
 import copy
+
+from ..HYGO_tools.chromosome_to_params import chromosome_to_params
 # Define the custom operation functions
 
 def mydiv(arg0,arg1):
@@ -146,11 +147,11 @@ class Individual():
         if HYGO_params.optimization == 'Parametric':
             if params:
                 # If specific params are provided, convert them to a chromosome
-                from GA_tools.params_to_chromosome import params_to_chromosome
+                from ..HYGO_tools.params_to_chromosome import params_to_chromosome
 
                 # If custom parameters are specified, call the specific function round_individuals
                 if hasattr(HYGO_params,'custom_parameters'):
-                    from GA_tools.round_params import round_params
+                    from ..HYGO_tools.round_params import round_params
                     params = round_params(HYGO_params,params)
 
                 # Translate the introduced parameters to chromosome
@@ -161,8 +162,8 @@ class Individual():
 
                 # If custom parameters are specified, call the specific function round_individuals
                 if hasattr(HYGO_params,'custom_parameters'):
-                    from GA_tools.round_params import round_params
-                    from GA_tools.params_to_chromosome import params_to_chromosome
+                    from ..HYGO_tools.round_params import round_params
+                    from ..HYGO_tools.params_to_chromosome import params_to_chromosome
                     params = round_params(HYGO_params,params)
 
                     # Translate the introduced parameters to chromosome
@@ -587,8 +588,8 @@ class Individual():
 
             # Round and convert parameters back to chromosomes if custom parameters are defined
             if hasattr(HYGO_params,'custom_parameters'):
-                from GA_tools.round_params import round_params
-                from GA_tools.params_to_chromosome import params_to_chromosome
+                from ..HYGO_tools.round_params import round_params
+                from ..HYGO_tools.params_to_chromosome import params_to_chromosome
 
                 params1 = round_params(HYGO_params,params1)
                 chromosome1 = params_to_chromosome(HYGO_params,params1)
@@ -794,8 +795,8 @@ class Individual():
 
             # Round and convert parameters back to chromosomes if custom parameters are defined
             if hasattr(HYGO_params,'custom_parameters'):
-                from GA_tools.round_params import round_params
-                from GA_tools.params_to_chromosome import params_to_chromosome
+                from ..HYGO_tools.round_params import round_params
+                from ..HYGO_tools.params_to_chromosome import params_to_chromosome
 
                 params = round_params(HYGO_params,params)
                 m_chromosome = params_to_chromosome(HYGO_params,params)
@@ -829,12 +830,12 @@ class Individual():
 
 if __name__=='__main__':
 
-    from Plant.parameters_control_law import Parameters
-    from GA_tools.chromosome_to_params import chromosome_to_params
+    from ..Plant.parameters_control_law import Parameters
+    from ..HYGO_tools.chromosome_to_params import chromosome_to_params
 
     HYGO_params = Parameters
 
-    '''ind1 = Individual()
+    ind1 = Individual()
     ind1.create(HYGO_params=HYGO_params,params=[1,1])
     ind2 = Individual()
     ind2.create(HYGO_params=HYGO_params,params=[8,32])
@@ -849,7 +850,7 @@ if __name__=='__main__':
     print(ind4.chromosome,'\n',chromosome_to_params(HYGO_params,ind4.chromosome))
     print(operation)
     print(ind5.chromosome,'\n',chromosome_to_params(HYGO_params,ind5.chromosome))
-    print(instructions)'''
+    print(instructions)
     
     ind = Individual()
     chrom = ind.create_chromosome(HYGO_params)

@@ -7,8 +7,9 @@ import copy
 
 from .individual import Individual
 from .table import Table
-from GA_tools.simplex import Simplex
-from GA_tools.CMA_ES import CMA_ES
+
+from ..HYGO_tools.simplex import Simplex
+from ..HYGO_tools.CMA_ES import CMA_ES
 
 import re
 
@@ -174,7 +175,7 @@ class Population(Simplex,CMA_ES):
 
         # Generate forced individuals if specified
         if HYGO_params.force_individuals:
-            from GA_tools.individual_forced_generator import individual_forced_generator
+            from ..HYGO_tools.individual_forced_generator import individual_forced_generator
             forced_params = individual_forced_generator(HYGO_params)
         else:
             forced_params = []
@@ -271,7 +272,7 @@ class Population(Simplex,CMA_ES):
         Returns:
             - Population: A new Population object representing the evolved population.
         """
-        from GA_tools.choose_operation import choose_operation
+        from ..HYGO_tools.choose_operation import choose_operation
 
         # Create a new Population object for the evolved population
         new_pop = Population(new_size,self.generation+1)
@@ -330,7 +331,7 @@ class Population(Simplex,CMA_ES):
         Returns:
             None
         """
-        from GA_tools.select_individual import select_individual
+        from ..HYGO_tools.select_individual import select_individual
 
         # Get the current index of individuals in the population
         indivs = self.data['Individuals'].values.tolist()
@@ -499,7 +500,7 @@ class Population(Simplex,CMA_ES):
         Returns:
             None
         """
-        from GA_tools.select_individual import select_individual
+        from ..HYGO_tools.select_individual import select_individual
 
         # Get the index to be filled
         indivs = self.data['Individuals'].values.tolist()
@@ -579,7 +580,7 @@ class Population(Simplex,CMA_ES):
         Returns:
             None
         """
-        from GA_tools.select_individual import select_individual
+        from ..HYGO_tools.select_individual import select_individual
 
         # Get the index to be filled
         indivs = self.data['Individuals'].values.tolist()
@@ -1161,16 +1162,3 @@ class Population(Simplex,CMA_ES):
                 params[i] = param
 
         return params
-
-
-if __name__ == '__main__':
-    from Plant.parameters import Parameters
-    HYGO_params = Parameters
-    HYGO_table = Table()
-
-    pop = Population(5,1)
-    '''pop.add_repetition()
-    pop.display_info()'''
-
-    pop.generate_pop(HYGO_params=HYGO_params,HYGO_table=HYGO_table)
-    pop.display_info()

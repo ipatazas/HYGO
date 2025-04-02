@@ -1,8 +1,8 @@
 import numpy as np
-from source.individual import *
+from ..HYGO.individual import *
 from scipy.optimize import curve_fit
 import copy
-import source
+import HYGO
 import os
 
 def reconstruction_cost(HYGO_params,parameters,path=None):
@@ -77,7 +77,7 @@ def regenerate_matrix(HYGO_params,ObjectiveControlPoints):
         import time
         ref = time.time()
         #Create the object
-        reconstruction = source.HYGO.HYGO(reconstruction_params)
+        reconstruction = HYGO.HYGO(reconstruction_params)
         #Run the genetic algorithm
         reconstruction.go()
         # Get the best individual index
@@ -181,7 +181,7 @@ class Simplex:
                 
             elif HYGO_params.SimplexInitialization=='ClosestN':
                 # Perform the kcloses calculation to initialize the simplex
-                from GA_tools.findKClosest import findKClosest
+                from .findKClosest import findKClosest
                 
                 # Take the data of the best individual
                 best_idx = int(self.data.loc[0,'Individuals'])
@@ -221,7 +221,7 @@ class Simplex:
                 self.simplex_idx,self.simplex_costs = HYGO_table.give_best(HYGO_params.SimplexSize)
                 
             elif HYGO_params.SimplexInitialization=='ClosestN':
-                from GA_tools.findKClosest import findKClosest
+                from .findKClosest import findKClosest
                 
                 # Obtain the best individual data
                 best_idx,best_cost = HYGO_table.give_best(1)

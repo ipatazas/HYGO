@@ -1,0 +1,8 @@
+# Ignore virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Ignore all files in the results folder
+results/

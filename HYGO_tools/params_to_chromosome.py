@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def params_to_chromosome(HYGO_params,params):
     """
     Converts a list of parameters to a binary chromosome based on the specified number of bits for each parameter.

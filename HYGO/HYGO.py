@@ -1,16 +1,17 @@
 __author__ = 'Isaac Robledo Martín'
-from .table import Table
-from .population import Population
-from .individual import Individual
-from GA_tools.parse_parameter_help import parse_parameter_file
 import os
 import warnings
 import numpy as np
 import pandas as pd
-
 import matplotlib.pyplot as plt
 import copy
 import importlib
+
+from .table import Table
+from .population import Population
+from .individual import Individual
+
+from ..HYGO_tools.parse_parameter_help import parse_parameter_file
 
 warnings.filterwarnings("ignore")
 
@@ -310,7 +311,7 @@ class HYGO():
         Parameters:
             - param_list (str/list[str], Optional): List of parameter names to get help. If not introduced all will be displayed
         """
-        help_dir = parse_parameter_file('./GA_tools/Parameter_help.txt')
+        help_dir = parse_parameter_file(os.path.join(os.path.dirname(__file__), '..', 'HYGO_tools', 'Parameter_help.txt'))
 
         if param_list is not None:
             if type(param_list)==str:
@@ -339,10 +340,10 @@ class HYGO():
                 
                 if 'specific' in param.keys():
                     if type(param["specific"])==str:
-                        string += f'\t Specific Condition: {param["specific"].replace('value',param["parameter"])}\n'
+                        string += f'\t Specific Condition: {param["specific"].replace("value",param["parameter"])}\n'
                     else:
                         for i,cond in enumerate(param["specific"]):
-                            string += f'\t Specific Condition {i+1}: {cond.replace('value',param["parameter"])}\n'
+                            string += f'\t Specific Condition {i+1}: {cond.replace("value",param["parameter"])}\n'
                 if param["parameter"] in help_dir.keys():
                     string += '\t Help: '+help_dir[param["parameter"]][:-2]
                 print(string + '\n')
@@ -361,10 +362,10 @@ class HYGO():
                 string += f'\t Valid types: {param["type"]}\n'
                 string += f'\t Dependant on parameter: {param["parent"]}\n'
                 if type(param["parent_condition"])==str:
-                    string += f'\t Condition for appearance: {param["parent_condition"].replace('value',param["parent"])}\n'
+                    string += f'\t Condition for appearance: {param["parent_condition"].replace("value",param["parent"])}\n'
                 else:
                     for i,cond in enumerate(param["parent_condition"]):
-                        string += f'\t Condition for appearance {i+1}: {cond.replace('value',param["parent"])}\n'
+                        string += f'\t Condition for appearance {i+1}: {cond.replace("value",param["parent"])}\n'
 
                 if 'valid_options' in param.keys():
                     string += f'\t Valid options: {param["valid_options"]}\n'
@@ -374,10 +375,10 @@ class HYGO():
                 
                 if 'specific' in param.keys():
                     if type(param["specific"])==str:
-                        string += f'\t Specific Condition: {param["specific"].replace('value',param["parameter"])}\n'
+                        string += f'\t Specific Condition: {param["specific"].replace("value",param["parameter"])}\n'
                     else:
                         for i,cond in enumerate(param["specific"]):
-                            string += f'\t Specific Condition {i+1}: {cond.replace('value',param["parameter"])}\n'
+                            string += f'\t Specific Condition {i+1}: {cond.replace("value",param["parameter"])}\n'
                 if param["parameter"] in help_dir.keys():
                     string += '\t Help: '+help_dir[param["parameter"]][:-2]
                 print(string + '\n')
@@ -396,10 +397,10 @@ class HYGO():
                 string += f'\t Valid types: {param["type"]}\n'
                 string += f'\t Dependant on parameter: {param["parent"]}\n'
                 if type(param["parent_condition"])==str:
-                    string += f'\t Condition for appearance: {param["parent_condition"].replace('value',param["parent"])}\n'
+                    string += f'\t Condition for appearance: {param["parent_condition"].replace("value",param["parent"])}\n'
                 else:
                     for i,cond in enumerate(param["parent_condition"]):
-                        string += f'\t Condition for appearance {i+1}: {cond.replace('value',param["parent"])}\n'
+                        string += f'\t Condition for appearance {i+1}: {cond.replace("value",param["parent"])}\n'
 
                 if 'valid_options' in param.keys():
                     string += f'\t Valid options: {param["valid_options"]}\n'
@@ -409,10 +410,10 @@ class HYGO():
                 
                 if 'specific' in param.keys():
                     if type(param["specific"])==str:
-                        string += f'\t Specific Condition: {param["specific"].replace('value',param["parameter"])}\n'
+                        string += f'\t Specific Condition: {param["specific"].replace("value",param["parameter"])}\n'
                     else:
                         for i,cond in enumerate(param["specific"]):
-                            string += f'\t Specific Condition {i+1}: {cond.replace('value',param["parameter"])}\n'
+                            string += f'\t Specific Condition {i+1}: {cond.replace("value",param["parameter"])}\n'
                 if param["parameter"] in help_dir.keys():
                     string += '\t Help: '+help_dir[param["parameter"]][:-2]
                 print(string + '\n')
@@ -910,7 +911,7 @@ class HYGO():
         if not specific_save:
             # If loading the entire saved state
             import dill
-            from GA_tools.DummyParams import DummyParameters
+            from ..HYGO_tools.DummyParams import DummyParameters
             
             # Load the HYGO object using dill
             file = open(path,'rb')
@@ -922,8 +923,10 @@ class HYGO():
             def has_numbers(inputString):
                 return any(char.isdigit() for char in inputString)
 
-            from Plant.parameters import cost_function
-            from GA_tools.DummyParams import DummyParameters
+            def cost_function(parameters,HYGO_params,path):
+                return 0,0
+            
+            from ..HYGO_tools.DummyParams import DummyParameters
             params = DummyParameters
 
             print('Loading General data')
