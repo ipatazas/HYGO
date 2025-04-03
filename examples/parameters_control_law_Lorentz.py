@@ -62,7 +62,7 @@ class Parameters:
     limit_evaluations = True # bool to limit number of evaluations
     
     ################################ CONTROL LAW PARAMS ################################
-    from ..tools.operations import operations
+    from ..hygo.tools.operations import operations
     operations = operations
     precission = 5
     

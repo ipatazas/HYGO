@@ -86,9 +86,6 @@ class Parameters:
                     # number of inds per generation REQUIRED
     ngen = 8 #Number of gens REQUIRED
     repetitions = 1 #Number of repetitions for each individual REQUIRED
-    uncertainty = 0.05 #Uncertainty threshold REQUIRED 
-    repeat_indivs_outside_uncertainty = True #Repeat those individuals that are outside 
-                                             # the uncertainty
     badvalue = 1e36 #Value assigned to non-valid individuals
 
     remove_duplicates = True #Remove individuals that yield equal parameters REQUIRED
@@ -97,7 +94,7 @@ class Parameters:
 
     #function utilized to evaluate a population
     cost_function = Rosenbrock_cost
-    individual_paths = True #Option that if true, each individual will have an assigned
+    individual_paths = False #Option that if true, each individual will have an assigned
                             # folder of the form output/geni/repj/individualk where information
                             # is saved. It is useful if the cost function requires file loading. 
                             # If the individual folders do not exist they will be created.
@@ -116,18 +113,6 @@ class Parameters:
     #Convergence parameters
     check_convergence = True #After each generation convergence will be checked
     check_type = 'Generation_change' #interval, Neval, Generation_change and Relative_change implemented
-
-    #interval convergence: n discretization above or below global minima
-    ninterval = 1 
-    global_minima = [1,1] 
-
-    #Neval convergence: n number of evaluations
-    neval = 5000 
-
-    #Relative change convergence parameters
-    check_n = 100 #Number of individuals to compare 
-    threshold_convergence=0.1 #Relative change between min and max 
-                            # to consider convergence
 
     #Generation change convergence parameters
     generations_stuck = 5 #Number of individuals to compare 
@@ -154,47 +139,7 @@ class Parameters:
     initialization = 'random' #Method of initializating the first population.
                               # random and LatinHypercube are implemented REQUIRED
 
-    #Parameters for Latin Hypercube
-
-    LatinN = 40 #Number of individuals to be created with the LatinHypercube sampling method.
-                # Required if LatinHypercube selected
-
     #Exploitation parameters
 
     exploitation = False #It can be a bool or a list of bools, if a list of bools it must have the
                         # the same length as the number of populations
-    ExploitationType = 'Downhill Simplex' #Explotation type, only Downhill Simplex available for now
-    #-----CMA-ES-------
-    CMA_Pool = 'Population'
-    CMA_gens = 5
-    CMA_Lambda = 20
-    #-------DS---------
-    MaxSimplexCycles = 1000 # Maximum number of cycles REQUIRED
-    SimplexSize = N_params+1 #It can be an int or a list of ints containing the number of individuals being
-                     # considered for the exploitation REQUIRED
-    
-    SimplexPool = 'Population' #Select Population or All if the individuals considered for an explotation
-                               # step in a given population take into account the whole individual pool REQUIRED
-                               # or just the population pool REQUIRED
-    SimplexOffspring = 10 # Can be an integer or a list of integers including the number of individuals
-                         # that will be generated through the explotation
-
-    SimplexInitialization = 'BestN' #How the simplex is initialized REQUIRED
-                                    #   BestN: The best individuals in the population/table
-                                    #   ClosestN: Closest individuals in the population/table
-
-    SimplexCycleChecker = 2 #Number of cycles to check if the simplex has been looking in a hyperplane
-                            #   REQUIRED
-    Simplex_R2 = 0.999 #Threshold to consider that the points are in a hyperplane
-                      #     REQUIRED
-    Simplex_intervals_movement = 300 #Number of intervals that a new point is introduced
-                      # in the simplex is moved from the last centroid. REQUIRED
-    Simplex_intervals_random_movement = 50 #Number of intervals that a new point is introduced
-                      # in the simplex is moved from the best individual when the simplex is in a cycle. REQUIRED
-
-    reflection_alpha = 1 #Reflection hyperparameter
-    expansion_gamma  = 2 #expansion hyperparameter
-    contraction_rho  = 0.5 #contraction hyperparameter
-    shrinkage_sigma  = 0.5 #shrinkage hyperparameter
-
-

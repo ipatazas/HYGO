@@ -7,28 +7,27 @@ import matplotlib.pyplot as plt
 HYGO_params = Parameters()
 
 # Select the Path
-PATH = 'output/'
+PATH = 'results/run1/'
 
 if not os.path.isdir(PATH):
     os.mkdir(PATH)
 
 #Create the object
-result = HYGO(HYGO_params,output_path = PATH)
+# result = HYGO(HYGO_params,output_path = PATH)
 
 # Load the security backup if necessary
-# result = HYGO.load_security(PATH)
+result = HYGO.load_security(PATH)
 
 # Get help if necessary
-result.help()
+# result.help()
 
 #Run the genetic algorithm
 result.go()
-
 # Save the information
 result.save()
 result.save(specific_save=True)
 
 # Plot the results
-result.convergence(save=PATH)
+result.convergence(save=PATH, show=False)
 
 print('done')

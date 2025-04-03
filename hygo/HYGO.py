@@ -822,7 +822,7 @@ class HYGO():
                 file.write('idx_to_evaluate='+str(pop.idx_to_evaluate)+'\n')
                 file.write('idx_to_check='+str(pop.idx_to_check)+'\n')
                 file.write('state='+str(pop.state)+'\n')
-                if self.parameters.exploitation:
+                if self.parameters.exploitation and hasattr(pop,'simplex_idx'):
                     file.write('simplex_idx='+str(pop.simplex_idx)+'\n')
                     file.write('simplex_costs='+str(pop.simplex_costs)+'\n')
                     if hasattr(pop,'simplex_centroid'):
@@ -1419,7 +1419,10 @@ class HYGO():
         collect_ancestry_subgraph(G, (gen,individual), visited_nodes)
         subgraph = G.subgraph(visited_nodes)
 
-        exploitation = self.parameters.ExploitationType
+        if hasattr(self.parameters,'ExploitationType'):
+            exploitation = self.parameters.ExploitationType
+        else:
+            exploitation = ''
         colors = {
                 'Random': 'grey', 'Elitism': 'red', 'Replication': 'lightcoral',
                 'Mutation': 'indianred', 'Crossover': 'darkred'
@@ -1647,13 +1650,12 @@ class HYGO():
 
         # Convert to DataFrame
         df_diversity = pd.DataFrame(param_diversity, columns=[f"Param_{i}" for i in range(param_matrix.shape[1])])
-        df_diversity.index.name = "Generation"
-
+        print('polllaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         # Plot parameter diversity over generations
         plt.figure(figsize=(10, 6))
         for col in df_diversity.columns:
-            plt.plot(df_diversity.index, df_diversity[col], label=col)
-
+            plt.plot(df_diversity.index.to_numpy(), df_diversity[col].to_numpy(), label=col)
+            
         plt.xlabel("Generation")
         plt.ylabel("Normalised Parameter Std Deviation")
         plt.title("Parameter Diversity Over Generations")
@@ -1719,7 +1721,6 @@ class HYGO():
 
         plt.tight_layout()
         plt.suptitle("Parameter Distributions Across Generations", y=1.02)
-        plt.show()
 
         if save:
             fig.savefig(save.replace('.png', '_violin.png'), bbox_inches='tight')
@@ -1844,7 +1845,11 @@ class HYGO():
 
             # Right plot: individual costs with operation color
             ax = axs[1]
-            exploitation = self.parameters.ExploitationType
+            if hasattr(self.parameters,'ExploitationType'):
+                exploitation = self.parameters.ExploitationType
+            else:
+                exploitation = ''
+                
             colors = {
                 'Random': 'black', 'Elitism': 'red', 'Replication': 'lightcoral',
                 'Mutation': 'indianred', 'Crossover': 'darkred'
