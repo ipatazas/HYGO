@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import copy
 import importlib
+import ast
 
 from .table import Table
 from .population import Population
@@ -909,7 +910,6 @@ class HYGO():
         if not specific_save:
             # If loading the entire saved state
             import dill
-            from .tools.DummyParams import DummyParameters
             
             # Load the HYGO object using dill
             file = open(path,'rb')
@@ -925,7 +925,7 @@ class HYGO():
                 return 0,0
             
             from .tools.DummyParams import DummyParameters
-            params = DummyParameters
+            params = DummyParameters()
 
             print('Loading General data')
             with open(path+'/General.txt') as f:
@@ -934,63 +934,35 @@ class HYGO():
                 gen = int(gen.split('=')[1][:-1])
                 path = f.readline()
                 path = path.split('=')[1][:-1]
-                for line in f.readlines():
-                    atr = line.split('=')[1][:-1]
-                    if '[' in atr:
-                        atr = atr[1:-1]
-                        temp=[]
-                        if '[' in atr:
-                            atr = atr.split('],')
-                            for vect in atr:
-                                temp2=[0,0]
-                                values = vect.split(',')
-                                val1 = values[0][1:]
-                                while '[' in val1:
-                                    val1=val1[1:]
-                                val2 = values[1]
-                                if '.' in val1:
-                                    val1=float(val1)
-                                else:
-                                    val1=int(val1)
-                                while ']'in val2:
-                                    val2=val2[:-1]
-                                if '.' in val2:
-                                    val2=float(val2)
-                                else:
-                                    val2=int(val2)
-                                temp2[0]=val1
-                                temp2[1]=val2
-                                temp.append(temp2)
-                        else:
-                            atr = atr.split(',')
-                            if atr != ['']:
-                                for num in atr:
-                                    if '.' in num:
-                                        temp.append(float(num))
-                                    else:
-                                        temp.append(int(num))
-                        atr=temp
-                    elif has_numbers(atr):
-                        if '.' in atr:
-                            atr=float(atr)
-                        elif '+' in atr:
-                            atr = atr.split('+')
-                            atr = 10**int(atr[1])
-                        else:
-                            atr=int(atr)
-                    elif atr=='True':
-                        atr=True
-                    elif atr=='False':
-                        atr=False
-                    setattr(params,line.split('=')[0],atr)
+                parameters = {}
+                for line in f:
+                    # Remove any whitespace and skip blank or commented lines
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+
+                    # Split the line into key and value
+                    if "=" in line:
+                        key, value = line.split("=", 1)
+                        key = key.strip()
+                        value = value.strip()
+                        try:
+                            # Try to evaluate the value as a Python literal
+                            parameters[key] = ast.literal_eval(value)
+                        except (ValueError, SyntaxError):
+                            # Fallback: keep it as a string if evaluation fails
+                            parameters[key] = value
+                for key in parameters.keys():
+                    setattr(params,key,parameters[key])
 
                 f.close()
 
                 # Set the cost function attribute in params
                 params.cost_function = lambda parameters,HYGO_params,path=None : cost_function(parameters,HYGO_params,path)
+                params.plotter = None
                 
                 # Create an instance of HYGO class with DummyParameters and set the generation
-                obj = cls(DummyParameters,path)
+                obj = cls(params,path)
                 obj.generation  = gen
 
             print('--->DONE\n')

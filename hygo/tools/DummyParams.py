@@ -5,6 +5,7 @@ class DummyParameters:
     '''
     Dummy class used to load data
     '''
+    optimization = None
     name = None
     verbose = None
     MaxTries = None
