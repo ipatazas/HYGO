@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: HYGO
+Version: 0.9.4
+Summary: HYGO: A genetic optimization framework
+Home-page: https://github.com/ipatazas/HYGO
+Author: Isaac Robledo Martín
+License: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# HYGO
+

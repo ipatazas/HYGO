@@ -1650,12 +1650,12 @@ class HYGO():
 
         # Convert to DataFrame
         df_diversity = pd.DataFrame(param_diversity, columns=[f"Param_{i}" for i in range(param_matrix.shape[1])])
-        print('polllaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+
         # Plot parameter diversity over generations
         plt.figure(figsize=(10, 6))
         for col in df_diversity.columns:
             plt.plot(df_diversity.index.to_numpy(), df_diversity[col].to_numpy(), label=col)
-            
+
         plt.xlabel("Generation")
         plt.ylabel("Normalised Parameter Std Deviation")
         plt.title("Parameter Diversity Over Generations")

@@ -13,10 +13,10 @@ if not os.path.isdir(PATH):
     os.mkdir(PATH)
 
 #Create the object
-# result = HYGO(HYGO_params,output_path = PATH)
+result = HYGO(HYGO_params,output_path = PATH)
 
 # Load the security backup if necessary
-result = HYGO.load_security(PATH)
+# result = HYGO.load_security(PATH)
 
 # Get help if necessary
 # result.help()
