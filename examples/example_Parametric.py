@@ -1,5 +1,5 @@
 from hygo import HYGO
-from examples.parameters_Rosenbrock import Parameters
+from examples.parameters_Rastriguin import Parameters
 import os
 import matplotlib.pyplot as plt
 
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 HYGO_params = Parameters()
 
 # Select the Path
-PATH = 'output/'
+PATH = 'results/'
 
 if not os.path.isdir(PATH):
     os.mkdir(PATH)

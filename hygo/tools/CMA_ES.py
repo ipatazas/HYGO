@@ -3,7 +3,7 @@ from ..individual import *
 
 class CMA_ES:
     """
-    The Simplex class represents the implementation of the Downhill Simplex optimization algorithm.
+    The CMA-ES represents the implementation of the CMA-ES optimization algorithm.
 
     Attributes:
         cma_es_state (str): Current state of the simplex optimization process.
@@ -54,7 +54,7 @@ class CMA_ES:
             Tuple[PopulationTable, bool, bool]: A tuple containing the updated population table, a flag indicating whether the maximum number of individuals is reached, and a flag indicating convergence.
         """
         if HYGO_params.verbose:
-            print('---> EMA-ES method selected for generation '+str(self.generation))
+            print('---> CMA-ES method selected for generation '+str(self.generation))
 
         # Check to see if a security backup is being computed
         restart = False

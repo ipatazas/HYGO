@@ -79,3 +79,7 @@
 \item {register_size [{integer}]}: length of the {registers} parameter.
 \item {variable_registers [{integer}]}: total number of variable registers (output, sensors, and memory registers).
 \item {ControlPoints [{list}]}: $N_{laws}\times N_control_points$ list containing the {ControlPoints} used to test the individuals.
+\item {Scipy_method [{str}]}: optimization method selected from scipy.optimize (Not all methods may be implemented).
+\item {Scipy_Initial_Condition [{str}]}: Initial condition for the optimization.
+\item {Scipy_options [{dict}]}: Dictionary containing extra options for the optimization.
+\item {Scipy_force_evaluate [{bool}]}: Employed to force individuals close to each other to re-evaluate, essential in gradient based solvers.

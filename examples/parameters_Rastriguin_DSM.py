@@ -10,7 +10,7 @@ def check_validity(GEGA_params,parameters):
             return False
     return True
 
-def Rosenbrock_cost(GEGA_params,parameters,path=None):
+def Rastriguin_cost(GEGA_params,parameters,path=None):
     '''
     Doomy cost function, it yields the value of cost function given the parameters of an individual,
     it can also serve to measure any experiment since the parameters of each individual are passed
@@ -23,15 +23,18 @@ def Rosenbrock_cost(GEGA_params,parameters,path=None):
     values = np.array(parameters)
 
     if len(values.shape)>1:
-        # J = 100*(values[:,1] - values[:,0]**2)**2 + (values[:,0]-1)**2
+        J = 10*values.shape[1]
+        for i in range(values.shape[1]):
+            J += values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i])
         J = np.sum(np.power(parameters,2),axis=1)
-        #J = np.power(values[:,0],2)+np.power(values[:,1],2)
         return J.tolist(), [0]*GEGA_params.batch_size
     else:
-        J = 100*(values[1] - values[0]**2)**2 + (values[0]-1)**2
-        return J, 0
+        J = 10*values.shape[0]
+        for i in range(values.shape[0]):
+            J += values[i]**2 - 10*np.cos(2*np.pi*values[i])
+        return float(J), 0
 
-def Rosenbrock_plotter(GA_params,GA):
+def Rastriguin_plotter(GA_params,GA):
 
     x = np.linspace(GA.parameters.params_range[0][0],GA.parameters.params_range[0][1],1000)
     y = np.linspace(GA.parameters.params_range[1][0],GA.parameters.params_range[1][1],1000)
@@ -42,7 +45,7 @@ def Rosenbrock_plotter(GA_params,GA):
 
     for i in range(1000):
         for j in range(1000):
-            val = Rosenbrock_cost(GA_params,[x[i],y[j]],None)
+            val = Rastriguin_cost(GA_params,[x[i],y[j]],None)
             zz[i,j] = val[0]
 
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
@@ -74,10 +77,10 @@ def Rosenbrock_plotter(GA_params,GA):
 class Parameters:
     optimization = 'Parametric' # Type of optimization: Parametric or Control Law
 
-    name = 'Rosenbrock' #Name of the experiment REQUIRED
+    name = 'Rastriguin' #Name of the experiment REQUIRED
     verbose = True #Display information of the process REQUIRED
     MaxTries = 2 #Maximum number of operations to create an individual REQUIRED
-    plotter = Rosenbrock_plotter
+    plotter = Rastriguin_plotter
     batch_evaluation = True
     batch_size = 100 
 
@@ -93,7 +96,7 @@ class Parameters:
     # validity = check_validity
 
     #function utilized to evaluate a population
-    cost_function = Rosenbrock_cost
+    cost_function = Rastriguin_cost
     individual_paths = False #Option that if true, each individual will have an assigned
                             # folder of the form output/geni/repj/individualk where information
                             # is saved. It is useful if the cost function requires file loading. 
@@ -141,5 +144,32 @@ class Parameters:
 
     #Exploitation parameters
 
-    exploitation = False #It can be a bool or a list of bools, if a list of bools it must have the
+    exploitation = True #It can be a bool or a list of bools, if a list of bools it must have the
                         # the same length as the number of populations
+    MaxSimplexCycles = 100 # Maximum number of cycles REQUIRED
+    SimplexSize = 10 #It can be an int or a list of ints containing the number of individuals being
+                     # considered for the exploitation REQUIRED
+    ExploitationType = 'Downhill Simplex' #Explotation type, only Downhill Simplex available for now
+    SimplexPool = 'Population' #Select Population or All if the individuals considered for an explotation
+                               # step in a given population take into account the whole individual pool REQUIRED
+                               # or just the population pool REQUIRED
+    SimplexOffspring = 20 # Can be an integer or a list of integers including the number of individuals
+                         # that will be generated through the explotation
+                             
+    SimplexInitialization = 'BestN' #How the simplex is initialized REQUIRED
+                                    #   BestN: The best individuals in the population/table
+                                    #   ClosestN: Closest individuals in the population/table
+    
+    SimplexCycleChecker = 5 #Number of cycles to check if the simplex has been looking in a hyperplane
+                            #   REQUIRED
+    Simplex_R2 = 0.999 #Threshold to consider that the points are in a hyperplane
+                      #     REQUIRED
+    Simplex_intervals_movement = 300 #Number of intervals that a new point is introduced
+                      # in the simplex is moved from the last centroid. REQUIRED
+    Simplex_intervals_random_movement = 100 #Number of intervals that a new point is introduced
+                      # in the simplex is moved from the best individual when the simplex is in a cycle. REQUIRED
+
+    reflection_alpha = 1 #Reflection hyperparameter
+    expansion_gamma  = 2 #expansion hyperparameter
+    contraction_rho  = 0.5 #contraction hyperparameter
+    shrinkage_sigma  = 0.5 #shrinkage hyperparameter

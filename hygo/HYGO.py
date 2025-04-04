@@ -168,7 +168,7 @@ class HYGO():
             {'parameter':'generations_stuck','type':int,'parent':'check_type','parent_condition':'value=="Generation_change"'},
             {'parameter':'mutation_rate','type':float,'parent':'mutation_type','parent_condition':'value=="classic"','specific':'value>0'},
             {'parameter':'LatinN','type':int,'parent':'initialization','parent_condition':'value=="LatinHypercube"','specific':['value>0','value<1']},
-            {'parameter':'ExploitationType','type':str,'parent':'exploitation','parent_condition':'value','valid_options':['Downhill Simplex','CMA-ES']},
+            {'parameter':'ExploitationType','type':str,'parent':'exploitation','parent_condition':'value','valid_options':['Downhill Simplex','CMA-ES','Scipy']},
             {'parameter':'CMA_Pool','type':str,'parent':'ExploitationType','parent_condition':'value=="CMA-ES"','valid_options':['Population','All']},
             {'parameter':'CMA_gens','type':int,'parent':'ExploitationType','parent_condition':'value=="CMA-ES"','specific':'value>0'},
             {'parameter':'CMA_Lambda','type':int,'parent':'ExploitationType','parent_condition':'value=="CMA-ES"','specific':'value>0'},
@@ -185,7 +185,12 @@ class HYGO():
             {'parameter':'expansion_gamma','type':[int,float],'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','specific':'value>0','default':2},
             {'parameter':'contraction_rho','type':[int,float],'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','specific':'value>0','default':0.5},
             {'parameter':'shrinkage_sigma','type':[int,float],'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','specific':'value>0','default':0.5},
+            {'parameter':'Scipy_method','type':str,'parent':'ExploitationType','parent_condition':'value=="Scipy"','valid_options':['Minimize'],'default':'Minimize'},
+            {'parameter':'Scipy_Initial_Condition','type':str,'parent':'Scipy_method','parent_condition':'value=="Minimize"','valid_options':['Best','Random'],'default':'Best'},
+            {'parameter':'Scipy_options','type':dict,'parent':'ExploitationType','parent_condition':'value=="Scipy"','default':{}},
+            {'parameter':'Scipy_force_evaluate','type':bool,'parent':'ExploitationType','parent_condition':'value=="Scipy"','default':False},
         ]
+    
     
     CONTROL_LAW_PARAMETERS= [
             {'parameter':'operations','type':dict,'parent':'optimization','parent_condition':'value=="Control Law"'},
@@ -631,8 +636,17 @@ class HYGO():
                     self.table,checker,convergence = self.population[gen].CMA_ES_exploitation(self.parameters,self.table,self.output_path)
                 elif self.population[gen].cma_es_state != 'CMA-ES done':
                     self.table,checker,convergence = self.population[gen].CMA_ES_exploitation(self.parameters,self.table,self.output_path)
+            elif self.parameters.ExploitationType == 'Scipy':
+                # Compute the exploitation
+                if not hasattr(self.population[gen],'cma_es_state'):
+                    if self.parameters.verbose:
+                        print('################ Exploitation for generation '+str(self.population[gen].generation)+' ################')
+                    self.population[gen].scipy_state = None
+                    self.table,checker,convergence = self.population[gen].Scipy_exploitation(self.parameters,self.table,self.output_path)
+                elif self.population[gen].scipy_state != 'Scipy Done':
+                    self.table,checker,convergence = self.population[gen].Scipy_exploitation(self.parameters,self.table,self.output_path)
             else:
-                raise ValueError('Only Downhill Simplex and CMA-ES are available as explotation methods')
+                raise ValueError('Only Downhill Simplex, CMA-ES and Scipy are available as explotation methods')
         
         return checker, convergence
 
@@ -1407,6 +1421,8 @@ class HYGO():
             })
         elif exploitation == 'CMA-ES':
             colors['CMA-ES'] = 'royalblue'
+        elif exploitation == 'Scipy':
+            colors['Scipy'] = 'royalblue'
 
         pos, gen_to_y = {}, {}
         for gen, idx in sorted(subgraph.nodes):
@@ -1711,7 +1727,7 @@ class HYGO():
         base_colors = {
             'Random':'black','Elitism':'red','Replication':'lightcoral','Mutation':'indianred','Crossover':'darkred',
             'Reflection':'royalblue','Contraction':'lightsteelblue','Shrinked':'navy','Expanded':'skyblue',
-            'Correction':'blueviolet','CorrectionRandom':'violet','CMA-ES':'royalblue'
+            'Correction':'blueviolet','CorrectionRandom':'violet','CMA-ES':'royalblue','Scipy':'royalblue'
         }
 
         # Determine relevant colors based on ExploitationType
@@ -1722,6 +1738,8 @@ class HYGO():
                                 'Reflection','Contraction','Shrinked','Expanded','Correction','CorrectionRandom']
             elif exploitation == 'CMA-ES':
                 relevant_ops = ['Random','Elitism','Replication','Mutation','Crossover','CMA-ES']
+            elif exploitation == 'Scipy':
+                relevant_ops = ['Random','Elitism','Replication','Mutation','Crossover','Scipy']
             else:
                 relevant_ops = list(base_colors.keys())
         else:
@@ -1834,6 +1852,8 @@ class HYGO():
                 })
             elif exploitation == 'CMA-ES':
                 colors['CMA-ES'] = 'royalblue'
+            elif exploitation == 'Scipy':
+                colors['Scipy'] = 'royalblue'
 
             start = 0
             for pop in self.population:

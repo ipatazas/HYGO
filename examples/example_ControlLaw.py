@@ -7,7 +7,7 @@ HYGO_params = Parameters()
 #Import the results
 
 # Select the Path
-PATH = 'output/'
+PATH = 'results/'
 
 if not os.path.isdir(PATH):
     os.mkdir(PATH)

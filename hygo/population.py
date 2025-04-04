@@ -10,6 +10,7 @@ from .table import Table
 
 from .tools.simplex import Simplex
 from .tools.CMA_ES import CMA_ES
+from .tools.api_scipy import API_Scipy
 
 import re
 
@@ -30,7 +31,7 @@ def filter_valid_strings(strings, invalid_indices):
 
     return valid_strings
 
-class Population(Simplex,CMA_ES):
+class Population(Simplex,CMA_ES,API_Scipy):
     """
     The Population class represents a population of individuals in a Genetic Algorithm.
 
@@ -1106,7 +1107,7 @@ class Population(Simplex,CMA_ES):
                         un = (max(vals)-min(vals))/max(vals)
                         
                         # Store the value in the dictionary
-                        uncertainty[str(i)+'-'+str(j)]=un
+                        uncertainty[str(i)+'-'+str(j)]=np.abs(un)
                         
                         # Update the minimu uncertainty value and cost
                         if un<minun or np.isnan(un):
