@@ -3,6 +3,7 @@ venv/
 env/
 .venv/
 ENV/
+docs_useless/
 
 # Ignore the build
 build/
