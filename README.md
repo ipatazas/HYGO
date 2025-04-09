@@ -1,4 +1,5 @@
 # HYGO
+<img src="logo/HyGo_logo.png" alt="Alt text" title="HyGO - Hybrid Genetic Optimization">
 
 **HYGO** is a versatile, modular toolbox for evolutionary optimization and genetic algorithms. It supports both parametric and control law optimizations and comes equipped with various genetic operations, advanced exploitation methods (such as Downhill Simplex and CMA-ES), and extensive parameter management. The toolbox is designed for researchers and engineers who need to solve complex optimization problems and experiment with evolutionary strategies.
 
