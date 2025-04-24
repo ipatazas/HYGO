@@ -10,7 +10,9 @@ HYGO.egg-info/top_level.txt
 examples/__init__.py
 examples/example_ControlLaw.py
 examples/example_Parametric.py
-examples/parameters_Rosenbrock.py
+examples/parameters_Rastriguin.py
+examples/parameters_Rastriguin_DSM.py
+examples/parameters_Rastriguin_Scipy.py
 examples/parameters_control_law.py
 examples/parameters_control_law_Lorentz.py
 hygo/HYGO.py
@@ -22,6 +24,7 @@ hygo/tools/CMA_ES.py
 hygo/tools/DummyParams.py
 hygo/tools/Parameter_help.txt
 hygo/tools/__init__.py
+hygo/tools/api_scipy.py
 hygo/tools/choose_operation.py
 hygo/tools/chromosome_to_params.py
 hygo/tools/findKClosest.py

@@ -167,7 +167,7 @@ class HYGO():
             {'parameter':'threshold_convergence','type':int,'parent':'check_type','parent_condition':'value=="Relative_change"'},
             {'parameter':'generations_stuck','type':int,'parent':'check_type','parent_condition':'value=="Generation_change"'},
             {'parameter':'mutation_rate','type':float,'parent':'mutation_type','parent_condition':'value=="classic"','specific':'value>0'},
-            {'parameter':'LatinN','type':int,'parent':'initialization','parent_condition':'value=="LatinHypercube"','specific':['value>0','value<1']},
+            {'parameter':'LatinN','type':int,'parent':'initialization','parent_condition':'value=="LatinHypercube"','specific':['value>0']},
             {'parameter':'ExploitationType','type':str,'parent':'exploitation','parent_condition':'value','valid_options':['Downhill Simplex','CMA-ES','Scipy']},
             {'parameter':'CMA_Pool','type':str,'parent':'ExploitationType','parent_condition':'value=="CMA-ES"','valid_options':['Population','All']},
             {'parameter':'CMA_gens','type':int,'parent':'ExploitationType','parent_condition':'value=="CMA-ES"','specific':'value>0'},
