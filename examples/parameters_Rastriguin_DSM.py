@@ -29,12 +29,12 @@ def Rastriguin_cost(GEGA_params,parameters,path=None):
         J = 10*values.shape[1]
         for i in range(values.shape[1]):
             J += (values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i]))
-        J = np.sum(np.power(parameters,2),axis=1)*(1 + np.random.rand(values.shape[0])*0.1)
+        J = np.sum(np.power(parameters,2),axis=1)
         return J.tolist(), [0]*GEGA_params.batch_size
     else:
         J = 10*values.shape[0]
         for i in range(values.shape[0]):
-            J += (values[i]**2 - 10*np.cos(2*np.pi*values[i]))*(1 + np.random.rand(1)*0.1)
+            J += (values[i]**2 - 10*np.cos(2*np.pi*values[i]))
         return float(J), 0
 
 def Rastriguin_plotter(GA_params,GA):
