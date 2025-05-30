@@ -21,17 +21,20 @@ def Rastriguin_cost(GEGA_params,parameters,path=None):
         J_terms(list): all cost values from which the J is derived
     '''
     values = np.array(parameters)
+    import time
+    time.sleep(0.1)
+    i = 1/int(np.random.randint(0,10,1))
 
     if len(values.shape)>1:
         J = 10*values.shape[1]
         for i in range(values.shape[1]):
-            J += values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i])
-        J = np.sum(np.power(parameters,2),axis=1)
+            J += (values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i]))
+        J = np.sum(np.power(parameters,2),axis=1)*(1 + np.random.rand(values.shape[0])*0.1)
         return J.tolist(), [0]*GEGA_params.batch_size
     else:
         J = 10*values.shape[0]
         for i in range(values.shape[0]):
-            J += values[i]**2 - 10*np.cos(2*np.pi*values[i])
+            J += (values[i]**2 - 10*np.cos(2*np.pi*values[i]))*(1 + np.random.rand(1)*0.1)
         return float(J), 0
 
 def Rastriguin_plotter(GA_params,GA):
@@ -80,15 +83,18 @@ class Parameters:
     name = 'Rastriguin' #Name of the experiment REQUIRED
     verbose = True #Display information of the process REQUIRED
     MaxTries = 2 #Maximum number of operations to create an individual REQUIRED
-    plotter = Rastriguin_plotter
+    # plotter = Rastriguin_plotter
     batch_evaluation = True
-    batch_size = 100 
+    batch_size = 5 
 
     #Population parameters
     pop_size = 30 #Individuals per generation, can be a int or a list with the
                     # number of inds per generation REQUIRED
-    ngen = 8 #Number of gens REQUIRED
-    repetitions = 1 #Number of repetitions for each individual REQUIRED
+    ngen = 5 #Number of gens REQUIRED
+    repetitions = 2 #Number of repetitions for each individual REQUIRED
+    uncertainty = 0.05
+    repeat_indivs_outside_uncertainty = True
+    
     badvalue = 1e36 #Value assigned to non-valid individuals
 
     remove_duplicates = True #Remove individuals that yield equal parameters REQUIRED

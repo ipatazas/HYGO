@@ -606,462 +606,184 @@ class Population(Simplex,CMA_ES,API_Scipy):
         Sort the population according to the costs in ascending order
         '''
         self.data = self.data.sort_values(by=['Costs'],ignore_index=True)
-
-    def evaluate_population(self,idx_to_evaluate,HYGO_params,HYGO_table,path,exploitation=False):
+    
+    def evaluate_and_store(self, HYGO_params, HYGO_table, base_path, rep, indices, exploitation):
         """
-        Evaluate the individuals in the population, considering the specified number of repetitions.
+        Evaluate a batch of individuals in a given repetition, store results, and handle directories, backups, and limits.
 
         Parameters:
-            - idx_to_evaluate (list): List of indices representing individuals to be evaluated. A list shall be
-                provided for each repetition.
-            - HYGO_params (object): An object containing parameters for the Genetic Algorithm.
-            - HYGO_table (Table): A table object storing individuals and their information.
-            - path (str): The path where the evaluation results will be stored.
-            - exploitation (bool): Flag indicating whether the evaluation is part of the exploitation method.
+            HYGO_params: GA configuration object.
+            HYGO_table: Table containing individuals.
+            base_path: Directory to store evaluations.
+            rep: Repetition index.
+            indices: List of individual row indices to evaluate.
+            exploitation: Whether this is exploitation evaluation.
 
         Returns:
-            - HYGO_table (Table): The updated table of individuals after evaluation.
-            - checker (bool): A flag indicating whether the convergence by the number of individuals is reached.
+            Tuple[HYGO_table, bool]: Updated table and evaluation continuation flag.
         """
-        checker = True #It only changes if the convergence by number of individuals is turned on
-                       # and that upper limit is reached 
-        # Display information about the evaluation if verbose mode is enabled
-        if HYGO_params.verbose and not exploitation:
-            print('################ Evaluation of generation '+str(self.generation)+' ################')
-        path = path + '/Gen'+str(self.generation)
-        
-        # Create the directory for the generation if specified
-        if HYGO_params.individual_paths or HYGO_params.security_backup:
-            if not os.path.isdir(path):
-                os.mkdir(path)
+        rep_name = f"Rep {rep+1}"
+        rep_path = os.path.join(base_path, f"Rep{rep+1}")
+        if HYGO_params.individual_paths:
+            os.makedirs(rep_path, exist_ok=True)
 
-        # Evaluate the specified number of repetitions
-        for rep in range(HYGO_params.repetitions):
-            # Obtain the individuals indexes
-            indivs_idx = self.data.loc[idx_to_evaluate[rep],'Individuals']
-            indivs_idx = indivs_idx.values.tolist()
-            indivs=[]
-            
-            # Obtain the individuals objects
-            for idx in indivs_idx:
-                indivs.append(HYGO_table.individuals[int(idx)])
-            
-            if HYGO_params.verbose and not exploitation:
-                print('\n--> Starting repetition '+str(rep+1))
-            
-            current_rep_name = "Rep "+ str(rep+1) #Repetition name
-            current_path = path+'/Rep'+str(rep+1) #Repetition folder
-            
-            # Add a repetition if the individuals to be evaluated are not from the exploitation
-            if not exploitation and ("Rep "+ str(rep+1)) not in self.data.columns:
-                self.add_repetition() #Add repetition
-                
-            # Create the repetition path
-            if HYGO_params.individual_paths:
-                if not os.path.isdir(current_path):
-                    os.mkdir(current_path) #Create directory if does not exist and params option selected
+        if not exploitation and ((rep_name, 'Cost') not in self.data.columns):
+            self.add_repetition()
 
-            # Obtain the number of individuals to evaluate
-            ninds = len(indivs)
-            # Obtain batch size
-            if hasattr(HYGO_params,'batch_size') and hasattr(HYGO_params,'batch_evaluation') and HYGO_params.batch_evaluation:
-                batch_size = HYGO_params.batch_size
-            else:
-                # If not specified individuals will be evaluated 1 by one
-                batch_size = 1
+        indivs_idx = self.data.loc[indices, 'Individuals'].values.tolist()
+        indivs = [HYGO_table.individuals[int(i)] for i in indivs_idx]
+        ninds = len(indivs)
+        batch_size = HYGO_params.batch_size if getattr(HYGO_params, 'batch_evaluation', False) else 1
 
-            # Loop for obtaining the cost for each individual
-            for i in range(0,ninds,batch_size):
-                # Check that the current batch will not be longer than the number of in individuals
-                if (i+batch_size)>ninds:
-                    batch_size = ninds-i
+        for i in range(0, ninds, batch_size):
+            actual_size = min(batch_size, ninds - i)
+            batch_inds = indivs[i:i+actual_size]
+            batch_idxs = indices[i:i+actual_size]
+            valid_idxs, valid_params, valid_paths, invalid_map = [], [], [], {}
+            ref_time = time.time()
 
-                # Check if the max number evaluation is reached
-                if HYGO_params.check_type=='Neval' or HYGO_params.limit_evaluations:
-                    for j in idx_to_evaluate[rep][i:i+batch_size]:
-                        if int(self.data.loc[j,'Individuals'])>=HYGO_params.neval:
-                            checker = False
-                            continue
+            # Check and collect valid individuals in batch
+            for k, j in enumerate(batch_idxs):
+                # Evaluation limit enforcement
+                if HYGO_params.check_type == 'Neval' or HYGO_params.limit_evaluations:
+                    idx = int(self.data.loc[j,'Individuals'])
+                    if idx >= HYGO_params.neval:
+                        print(f"[Max Eval] Individual {idx} exceeded evaluation limit ({HYGO_params.neval}).")
+                        return HYGO_table, False
 
-                if HYGO_params.verbose:
-                    print('Evaluating individuals '+str(idx_to_evaluate[rep][i:i+batch_size]).replace('[','').replace(']',''))
-                    
-                # Create the individuals path
-                ind_paths=[]
-                for j in idx_to_evaluate[rep][i:i+batch_size]:
-                    ind_path = current_path+'/Individual'+str(j)
-                    ind_paths.append(ind_path)
+                cost = self.data.loc[j, 'Costs']
+                # Skip if already evaluated
+                if pd.notna(cost)[0] and not np.isclose(float(cost), -1, atol=1e-9):
+                    HYGO_table.individuals[int(self.data.loc[j,'Individuals'])].cost = HYGO_params.badvalue
+                    self.data.loc[j, (rep_name,'Cost_terms')] = np.nan
+                    self.data.loc[j, (rep_name,'Evaluation_time')] = np.nan
+                    self.data.loc[j, ('Uncertainty','Minimum')] = np.nan
+                    self.data.loc[j, ('Uncertainty','All')] = np.nan
                     if HYGO_params.individual_paths:
-                        if not os.path.isdir(ind_path):
-                            os.mkdir(ind_path)
-
-                # Obtain an evaluation time reference
-                ref = time.time()
-
-                # Create a sub-list of the indexes evaluated in this batch
-                not_valid_idx = []
-                not_valid_inds = [] # TODO CHANGED
-
-                # Store individual's params
-                params = []
-                for j in range(i,i+batch_size):
-                    # Obtain the individual to get the parameters
-                    ind = indivs[j]
-
-                    # Check if it has to be evaluated
-                    if float(pd.isna(self.data.loc[idx_to_evaluate[rep][j],'Costs']))==0 and not abs(float(self.data.loc[idx_to_evaluate[rep][j],'Costs'])-(-1))<1e-9:
-                        if HYGO_params.verbose:
-                            print('Individual '+str(idx_to_evaluate[rep][j])+ ' not evaluated, already has an assigned cost')
-                        self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Cost_terms')] = str(np.nan)
-                        self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Evaluation_time')] = np.nan
-                        self.data.loc[idx_to_evaluate[rep][j],('Uncertainty','Minimum')] = np.nan
-                        self.data.loc[idx_to_evaluate[rep][j],('Uncertainty','All')] = np.nan
-                        HYGO_table.individuals[int(indivs_idx[j])].cost = HYGO_params.badvalue
-                        # Update data in the population
-                        if HYGO_params.individual_paths:
-                            self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Path')] = ind_paths[j-i] #TODO: changed
-                            HYGO_table.individuals[int(indivs_idx[j])].path.append(ind_paths[j-i])
-
-                        # Identify individuals that are not valid
-                        not_valid_idx.append(j)
-                        not_valid_inds.append(idx_to_evaluate[rep][j]) # TODO CHANGED
-
-                        # Make a security backup if specified
-                        if HYGO_params.security_backup:
-                            import dill
-                            file = open(path+'/pop_backup.obj','wb')
-                            dill.dump(self,file)
-                            file.close()
-                            file = open(path+'/table_backup.obj','wb')
-                            dill.dump(HYGO_table,file)
-                            file.close()
-                    else:
-                        # Obtain the individual parameters
-                        params.append(ind.parameters)
-                
-                ind_paths = filter_valid_strings(ind_paths, not_valid_inds) # TODO CHANGED
-
-                if params!=[]:
-                    if len(params)==1:
-                        # Obtain the cost for the individual
-                        if HYGO_params.individual_paths: 
-                            output = HYGO_params.cost_function(params[0],ind_paths[0])
-                        else:
-                            output = HYGO_params.cost_function(params[0])
-                    else:
-                        # Obtain the cost for the individual
-                        if HYGO_params.individual_paths: 
-                            output = HYGO_params.cost_function(params,ind_paths)
-                        else:
-                            output = HYGO_params.cost_function(params)
+                        ipath = os.path.join(rep_path, f"Individual{j}")
+                        os.makedirs(ipath, exist_ok=True)
+                        self.data.loc[j, (rep_name,'Path')] = ipath
+                        HYGO_table.individuals[int(self.data.loc[j,'Individuals'])].path.append(ipath)
+                    invalid_map[k] = j
+                    if HYGO_params.security_backup:
+                        self._backup_state(HYGO_table, base_path)
                 else:
-                    output = []
-                    
-                # Obtain evaluation time
-                eval_time = time.time()-ref 
-                
-                if params!=[]:
-                    if len(output)>2:
-                        raise ValueError('No more than 2 outputs are allowed for a cost function definition')
+                    valid_idxs.append(j)
+                    valid_params.append(batch_inds[k].parameters)
+                    if HYGO_params.individual_paths:
+                        ipath = os.path.join(rep_path, f"Individual{j}")
+                        os.makedirs(ipath, exist_ok=True)
+                        valid_paths.append(ipath)
                     else:
-                        J = output[0]
-                        J_vals = output[1]
-                        if len(params)==1:
-                            J = [J]
-                            J_vals = [J_vals]
+                        valid_paths.append(None)
 
-                pos = 0
-                for j in range(i,i+batch_size):
-                    if j in not_valid_idx:
-                        # Eliminate the index from the corresponding list
-                        self.idx_to_evaluate[rep].pop(0)
-                    else:
-                        self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Cost')] = J[pos]
-                        self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Cost_terms')] = str(J_vals[pos])
-                        self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Evaluation_time')] = eval_time
-
-                        # Add the index for latter uncertainty check
-                        self.idx_to_check.append(idx_to_evaluate[rep][j])
-                        self.idx_to_check = np.unique(self.idx_to_check).tolist()
-
-                        # Update data in the population
-                        if HYGO_params.individual_paths:
-                            self.data.loc[idx_to_evaluate[rep][j],(current_rep_name,'Path')] = ind_paths[pos]
-                            HYGO_table.individuals[int(indivs_idx[j])].path.append(ind_paths[pos])
-
-                        # Update position of the cost value
-                        pos += 1
-                        
-                        # Eliminate the index from the corresponding list
-                        self.idx_to_evaluate[rep].pop(0)
-                        
-                        # Make a security backup if specified
-                        if HYGO_params.security_backup:
-                            import dill
-                            file = open(path+'/pop_backup.obj','wb')
-                            dill.dump(self,file)
-                            file.close()
-                            file = open(path+'/table_backup.obj','wb')
-                            dill.dump(HYGO_table,file)
-                            file.close()
-
-        # Obtain the indexes to be checked for uncertainty
-        idx_check = np.unique(self.idx_to_check)
-        idx_to_evaluate_new=[]
-        
-        # Compute uncertainties
-        for idx in idx_check:
-            minun,valid_cost,uncertainties = self.compute_uncertainty(idx,HYGO_params.repetitions)
-            
-            # Save the data in the population
-            self.data.loc[idx,('Uncertainty','Minimum')] = minun
-            self.data.loc[idx,('Uncertainty','All')] = str(uncertainties)
-            self.data.loc[idx,'Costs'] = valid_cost #Update pop costs
-            
-            # Check individuals outside uncertainty
-            if HYGO_params.repetitions>1 and minun>HYGO_params.uncertainty:
-                # Add to the list o indexes to evaluate of the extra repetition
-                idx_to_evaluate_new.append(idx)
-            
-            # Eliminate the individual from the check for uncertainty list
-            self.idx_to_check.pop(0)
-
-        additional_rep = False
-        non_valid_idx = []
-        
-        # Last repetition for individuals outside uncertainty
-        if HYGO_params.repetitions>1 and HYGO_params.repeat_indivs_outside_uncertainty:
-            if len(self.idx_to_evaluate)==(HYGO_params.repetitions+1):
-                # Obtain the list of indexes to evaluate corresponding to the extra repetition
-                idx_to_evaluate_old = idx_to_evaluate[-1]
-                # Eliminate redundant indexes
-                idx_to_eval = np.unique(idx_to_evaluate_new + idx_to_evaluate_old)
-                
-                #Save the idx to evaluate
-                self.idx_to_evaluate[HYGO_params.repetitions] += copy.deepcopy(idx_to_eval.tolist())
-            else:
-                idx_to_eval = np.array(idx_to_evaluate_new)
-                self.idx_to_evaluate.append(copy.deepcopy(idx_to_eval.tolist()))
-            
-            # Loop to evaluate the individuals outside the uncertainty
-            if len(idx_to_eval)>0:
-                # Set the flag for the additional repetition to True
-                additional_rep = True
-                
-                # Add repetition if the evaluation corresponds to GA
-                if not exploitation:
-                    self.add_repetition()
+            # Evaluate cost function only if we have valid individuals
+            if not valid_params:
+                continue
+            if HYGO_params.verbose:
+                if HYGO_params.batch_evaluation:
+                    print(f'\t Evaluating individuals {self.data.loc[batch_idxs,"Individuals"].astype(int).tolist()}')
                 else:
-                    nreps = HYGO_params.repetitions
-                    cols = self.data.columns
-                    # If the evaluation is for the exploitation individuals, check that the repetition
-                    #   exists and if not, add it
-                    if ('Rep '+str(nreps+1),'Cost') not in cols:
-                        self.add_repetition()
+                    print(f'\t Evaluating individuals {int(self.data.loc[batch_idxs,"Individuals"].tolist()[0])}')
+            cost_out = HYGO_params.cost_function(valid_params, valid_paths) if len(valid_params) > 1 else HYGO_params.cost_function(valid_params[0], valid_paths[0])
+            J, J_vals = (cost_out if isinstance(cost_out, (list, tuple)) and len(cost_out) == 2 else ([], []))
+            if len(valid_params) == 1:
+                J, J_vals = [J], [J_vals]
 
-                if HYGO_params.verbose and not exploitation:
-                    print('\n--> Starting repetition '+str(self.repetition))
-                
-                # Obtain the individuals indexes
-                indivs_idx = self.data.loc[idx_to_eval,'Individuals']
-                indivs_idx=indivs_idx.values.tolist()
-                indivs=[]
-                
-                # Obtain the individuals' objects
-                for idx in indivs_idx:
-                    indivs.append(HYGO_table.individuals[int(idx)])
-
-                # Create the repetition directory if specified
-                rep = self.repetition
-                current_rep_name = "Rep "+ str(rep)
-                current_path = path+'/Rep'+str(rep)
+            # Store evaluation results
+            for pos, j in enumerate(valid_idxs):
+                self.data.loc[j, (rep_name,'Cost')] = J[pos]
+                self.data.loc[j, (rep_name,'Cost_terms')] = str(J_vals[pos])
+                self.data.loc[j, (rep_name,'Evaluation_time')] = time.time() - ref_time
                 if HYGO_params.individual_paths:
-                    if not os.path.isdir(current_path):
-                        os.mkdir(current_path)
-                
-                #################################
-                # Obtain the number of individuals to evaluate
-                ninds = len(indivs)
-                for i in range(0,ninds,batch_size):
-                    # Check that the current batch will not be longer than the number of in individuals
-                    if (i+batch_size)>ninds:
-                        batch_size = ninds-i
+                    self.data.loc[j, (rep_name,'Path')] = valid_paths[pos]
+                    HYGO_table.individuals[int(self.data.loc[j,'Individuals'])].path.append(valid_paths[pos])
+                HYGO_table.individuals[int(self.data.loc[j,'Individuals'])].cost = J[pos]
+                self.idx_to_check.append(j)
 
-                    if HYGO_params.verbose:
-                        print('Evaluating individuals '+str(idx_to_eval[i:i+batch_size]).replace('[','').replace(']',''))
-                        
-                    # Create the individuals path
-                    ind_paths=[]
-                    for j in idx_to_eval[i:i+batch_size]:
-                        ind_path = current_path+'/Individual'+str(j)
-                        ind_paths.append(ind_path)
-                        if HYGO_params.individual_paths:
-                            if not os.path.isdir(ind_path):
-                                os.mkdir(ind_path)
-
-                    # Obtain an evaluation time reference
-                    ref = time.time()
-
-                    # Create a sub-list of the indexes evaluated in this batch
-                    not_valid_idx = []
-                    not_valid_inds = [] # TODO CHANGED
-
-                    # Store individual's params
-                    params = []
-                    for j in range(i,i+batch_size):
-                        # Obtain the individual to get the parameters
-                        ind = indivs[j]
-
-                        # Check if it has to be evaluated
-                        if float(pd.isna(self.data.loc[idx_to_eval[j],'Costs']))==0 and not abs(float(self.data.loc[idx_to_eval[j],'Costs'])-(-1))<1e-9:
-                            if HYGO_params.verbose:
-                                print('Individual '+str(idx_to_eval[j])+ ' not evaluated, already has an assigned cost')
-                            self.data.loc[idx_to_eval[j],(current_rep_name,'Cost_terms')] = str(np.nan)
-                            self.data.loc[idx_to_eval[j],(current_rep_name,'Evaluation_time')] = np.nan
-                            self.data.loc[idx_to_eval[j],('Uncertainty','Minimum')] = np.nan
-                            self.data.loc[idx_to_eval[j],('Uncertainty','All')] = np.nan
-                            HYGO_table.individuals[int(idx_to_eval[j])].cost = HYGO_params.badvalue
-                            # Update data in the population
-                            if HYGO_params.individual_paths:
-                                self.data.loc[idx_to_eval[j],(current_rep_name,'Path')] = ind_paths[j]
-                                HYGO_table.individuals[int(indivs_idx[j])].path.append(ind_paths[j])
-
-                            # Identify individuals that are not valid
-                            not_valid_idx.append(j)
-                            not_valid_inds.append(idx_to_evaluate[rep][j]) # TODO CHANGED
-
-                            # Make a security backup if specified
-                            if HYGO_params.security_backup:
-                                import dill
-                                file = open(path+'/pop_backup.obj','wb')
-                                dill.dump(self,file)
-                                file.close()
-                                file = open(path+'/table_backup.obj','wb')
-                                dill.dump(HYGO_table,file)
-                                file.close()
-                        else:
-                            # Obtain the individual parameters
-                            params.append(ind.parameters)
-
-                    ind_paths = filter_valid_strings(ind_paths, not_valid_inds) # TODO CHANGED
-
-                    if len(params)==1:
-                        # Obtain the cost for the individual
-                        if HYGO_params.individual_paths: 
-                            output = HYGO_params.cost_function(params[0],ind_paths[0])
-                        else:
-                            output = HYGO_params.cost_function(params[0])
-                    else:
-                        # Obtain the cost for the individual
-                        if HYGO_params.individual_paths: 
-                            output = HYGO_params.cost_function(params,ind_paths)
-                        else:
-                            output = HYGO_params.cost_function(params)
-                        
-                    # Obtain evaluation time
-                    eval_time = time.time()-ref 
-                    
-                    if len(output)>2:
-                        raise ValueError('No more than 2 outputs are allowed for a cost function definition')
-                    else:
-                        J = output[0]
-                        J_vals = output[1]
-                        if len(params)==1:
-                            J = [J]
-                            J_vals = [J_vals]
-                    pos = 0
-                    for j in range(i,i+batch_size):
-                        if j in not_valid_idx:
-                            # Eliminate the index from the corresponding list
-                            self.idx_to_evaluate[rep].pop(0)
-                        else:
-                            self.data.loc[idx_to_eval[j],(current_rep_name,'Cost')] = J[pos]
-                            self.data.loc[idx_to_eval[j],(current_rep_name,'Cost_terms')] = str(J_vals[pos])
-                            self.data.loc[idx_to_eval[j],(current_rep_name,'Evaluation_time')] = eval_time
-                            # Update position of the cost value
-                            pos += 1
-
-                            # Add the index for latter uncertainty check
-                            self.idx_to_check.append(idx_to_eval[j])
-                            self.idx_to_check = np.unique(self.idx_to_check).tolist()
-
-                            # Update data in the population
-                            if HYGO_params.individual_paths:
-                                self.data.loc[idx_to_eval[j],(current_rep_name,'Path')] = ind_paths[j]
-                                HYGO_table.individuals[int(indivs_idx[j])].path.append(ind_paths[j])
-
-                            # Eliminate the index from the corresponding list
-                            self.idx_to_evaluate[HYGO_params.repetitions].pop(0)
-                            
-                            # Make a security backup if specified
-                            if HYGO_params.security_backup:
-                                import dill
-                                file = open(path+'/pop_backup.obj','wb')
-                                dill.dump(self,file)
-                                file.close()
-                                file = open(path+'/table_backup.obj','wb')
-                                dill.dump(HYGO_table,file)
-                                file.close()
-
-            # Obtain the indexes to be checked for uncertainty
-            idx_check = np.unique(self.idx_to_check)
-            non_valid_idx = []
+            a = 1
+            for _ in range(actual_size):
+                self.idx_to_evaluate[rep].pop(0)
             
-            # Check uncertainty of the extra repetition
-            for idx in idx_check:
-                # Compute uncertainties including the extra repetition if it took place
-                if additional_rep:
-                    minun,valid_cost,uncertainties = self.compute_uncertainty(idx,HYGO_params.repetitions+1)
+            if HYGO_params.security_backup:
+                    self._backup_state(HYGO_table, base_path)
+
+        return HYGO_table, True
+    
+    def evaluate_population(self, idx_to_evaluate, HYGO_params, HYGO_table, path, exploitation=False):
+        """
+        Evaluate individuals in the population using the defined cost function.
+
+        Parameters:
+            idx_to_evaluate (list): List of indices per repetition.
+            HYGO_params (object): Parameters for the Genetic Algorithm.
+            HYGO_table (Table): Table storing individuals and metadata.
+            path (str): Directory to store evaluation data.
+            exploitation (bool): Whether the evaluation is part of exploitation.
+
+        Returns:
+            HYGO_table (Table): Updated table.
+            checker (bool): Flag for evaluation convergence.
+        """
+        
+        checker = True
+        # self.idx_to_evaluate = idx_to_evaluate
+        base_path = os.path.join(path, f'Gen{self.generation}')
+
+        if HYGO_params.verbose and not exploitation:
+            print(f"################ Evaluation of generation {self.generation} ################")
+
+        if HYGO_params.individual_paths or HYGO_params.security_backup:
+            os.makedirs(base_path, exist_ok=True)
+
+        for rep in range(HYGO_params.repetitions):
+            if HYGO_params.verbose:
+                print(f'---------------- Repetition {rep+1} ----------------')
+            HYGO_table, checker = self.evaluate_and_store(HYGO_params, HYGO_table, base_path, rep, copy.deepcopy(idx_to_evaluate[rep]), exploitation)
+
+        self.idx_to_check = list(np.unique(self.idx_to_check))
+        non_valid = self._handle_uncertainty(HYGO_params, HYGO_params.repetitions)
+
+        if non_valid:
+            if HYGO_params.repetitions > 1 and HYGO_params.repeat_indivs_outside_uncertainty:
+                if HYGO_params.verbose:
+                    print(f'---------------- Repetition {HYGO_params.repetitions+1} ----------------')
+                    print(f'{len(non_valid)} individuals outside uncertainty')
+                if len(self.idx_to_evaluate) <= HYGO_params.repetitions:
+                    self.idx_to_evaluate.append(non_valid)
                 else:
-                    minun,valid_cost,uncertainties = self.compute_uncertainty(idx,HYGO_params.repetitions)
-                
-                # Save the data in the population
-                self.data.loc[idx,('Uncertainty','Minimum')] = minun
-                self.data.loc[idx,('Uncertainty','All')] = str(uncertainties)
-                self.data.loc[idx,'Costs'] = valid_cost #Update pop costs
-                
-                # Check individuals outside uncertainty
-                if minun>HYGO_params.uncertainty:
-                    non_valid_idx.append(idx)
+                    self.idx_to_evaluate[HYGO_params.repetitions] += non_valid
+                    self.idx_to_evaluate[HYGO_params.repetitions] = np.unique(self.idx_to_evaluate[HYGO_params.repetitions]).tolist()
                     
-                # Eliminate the individual from the check for uncertainty list
-                self.idx_to_check.pop(0)
+                if not exploitation and ((f'Rep {HYGO_params.repetitions+1}', 'Cost') not in self.data.columns):
+                    self.add_repetition()
+                    
+                HYGO_table, checker = self.evaluate_and_store(HYGO_params, HYGO_table, base_path, HYGO_params.repetitions, copy.deepcopy(non_valid), exploitation)
+                non_valid = self._handle_uncertainty(HYGO_params, HYGO_params.repetitions+1)
+                #Assign badvalue
+                for idx in non_valid:
+                    self.data.loc[idx, 'Costs'] = HYGO_params.badvalue
+                if HYGO_params.verbose:
+                    print(f'{len(non_valid)} individuals have been assigned a badvalue')
+        # print(self.data[('Uncertainty', 'All')])
+        if (HYGO_params.check_type == 'Neval' or HYGO_params.limit_evaluations) and not checker:
+            to_drop = [i for i in range(self.data.shape[0]) if int(self.data.loc[i,'Individuals']) >= HYGO_params.neval]
+            for i in to_drop:
+                HYGO_table.remove_individual(-1)
+            self.data = self.data.drop(to_drop).reset_index(drop=True)
 
-        non_valid_idx = np.array(non_valid_idx)
-
-        # Assign bad value costs to the individuals outside of the uncertainty
-        if non_valid_idx.size>0:
-            self.data.loc[non_valid_idx,'Costs'] = HYGO_params.badvalue
-            for idx in non_valid_idx:
-                HYGO_table.individuals[int(idx)].cost = HYGO_params.badvalue
-
-        idx_to_drop=[]
-        # Eliminate the rows corresponding to the individuals that were not evaluated due to the 
-        #   maximum numbr of evaluations
-        if (HYGO_params.check_type=='Neval' or HYGO_params.limit_evaluations) and not checker:
-            for idx in range(self.data.shape[0]):
-                if int(self.data.loc[idx,'Individuals'])>=HYGO_params.neval:
-                    HYGO_table.remove_individual(-1)
-                    idx_to_drop.append(int(idx))
-            self.data = self.data.drop(idx_to_drop)
-            self.data=self.data.reset_index(drop=True)
-
-        # Update the population's state
         self.state = 'Evaluated'
-
-        # Obtain the evaluated individuals indexes
         idx = self.data['Individuals']
-        
-        # Update the table data
-        for i,j in enumerate(idx):
-            HYGO_table.individuals[int(j)].cost = float(self.data.loc[i,'Costs'])
-            HYGO_table.costs[int(j)] = float(self.data.loc[i,'Costs'])
-
-        # Sort the population
+        for i, j in enumerate(idx):
+            HYGO_table.individuals[int(j)].cost = float(self.data.loc[i, 'Costs'])
+            HYGO_table.costs[int(j)] = float(self.data.loc[i, 'Costs'])
         self.sort_pop()
-        
-        # Make a security backup if specified
         if HYGO_params.security_backup:
+            self._backup_state(HYGO_table, base_path)
+        return HYGO_table, checker
+
+    def _backup_state(self, HYGO_table, path):
+        try:
             import dill
             file = open(path+'/pop_backup.obj','wb')
             dill.dump(self,file)
@@ -1069,9 +791,22 @@ class Population(Simplex,CMA_ES,API_Scipy):
             file = open(path+'/table_backup.obj','wb')
             dill.dump(HYGO_table,file)
             file.close()
+        except ImportError:
+            print("[Warning] dill not installed. Backup skipped.")
 
-        return HYGO_table,checker
-
+    def _handle_uncertainty(self, HYGO_params, nreps):
+        non_valid_idx = []
+        for idx in self.idx_to_check:
+            minun, valid_cost, uncertainties = self.compute_uncertainty(idx, nreps)
+            self.data.loc[idx, ('Uncertainty', 'Minimum')] = minun
+            self.data.loc[idx, ('Uncertainty', 'All')] = str(uncertainties)
+            if HYGO_params.repetitions > 1 and minun > HYGO_params.uncertainty:
+                non_valid_idx.append(idx)
+            else:
+                self.data.loc[idx, 'Costs'] = valid_cost
+        self.idx_to_check = []
+        return non_valid_idx
+    
     def compute_uncertainty(self,idx,rep):
         """
         Compute the uncertainty for a given individual based on the minimum cost among repetitions.
@@ -1088,6 +823,7 @@ class Population(Simplex,CMA_ES,API_Scipy):
         """
         
         minun = 1e36
+        valid_cost = -1
 
         # Initialize dictionary to store uncertainties for each repetition
         uncertainty = {}
