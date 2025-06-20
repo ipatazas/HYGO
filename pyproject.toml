@@ -1,6 +1,6 @@
 [project]
 name = "HYGO"
-version = "0.9.9"
+version = "0.9.10"
 description = "HYbrid Genetic Optimizer mixing parametric genetic optimization with genetic programming"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/iatazas/HYGO"
+"Homepage" = "https://github.com/ipatazas/HYGO"
 
 [build-system]
 requires = ["setuptools>=61.0"]
