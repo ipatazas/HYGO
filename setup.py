@@ -15,11 +15,9 @@ setup(
     },
     install_requires=[
         'numpy>=1.16,<2.0',
-        'scipy>=1.3',
         'matplotlib>=3.0',
         'pandas>=0.25',
         'dill>=0.3.0',
-        'scipy>=1.15',
     ],
     python_requires='>=3.7'
 )

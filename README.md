@@ -7,6 +7,7 @@
 
 ## Table of Contents
 
+- [Paper: *Fast and Robust Parametric and Functional Learning with Hybrid Genetic Optimisation (HyGO)*](#paper-fast-and-robust-parametric-and-functional-learning-with-hybrid-genetic-optimisation-hygo)
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
@@ -19,6 +20,18 @@
 - [Contact](#contact)
 
 ---
+
+## Paper: *Fast and Robust Parametric and Functional Learning with Hybrid Genetic Optimisation (HyGO)*
+
+This repository includes the code for the framework described in the paper [Fast and Robust Parametric and Functional Learning with Hybrid Genetic Optimisation (HyGO)](HyGO_paper.pdf). The HyGO framework enhances evolutionary algorithms by integrating local search methods like the Downhill Simplex Method (DSM) and Genetic Programming for accelerated learning while maintaining robustness. This paper presents HyGO’s superior performance in optimizing parametric and functional problems, including applications such as aerodynamic drag reduction.
+
+For more detailed insights, refer to the full paper in PDF format:  
+[Download the full paper](HyGO_paper.pdf).
+
+### Highlights:
+- **Hybrid Genetic Optimisation** combining global search and local refinement for fast and reliable convergence.
+- **Benchmark Performance**: HyGO outperforms standard genetic algorithms in complex optimization problems.
+- **Applications**: The framework was applied to a flow control problem for drag reduction on the Ahmed body, achieving a 20% reduction in aerodynamic drag.
 
 ## Features
 
