@@ -13,3 +13,6 @@ results/
 
 # Ignore testing files
 test*
+
+# Ignore cache files
+__pycache__/

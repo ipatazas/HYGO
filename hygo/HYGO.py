@@ -935,7 +935,7 @@ class HYGO():
             def has_numbers(inputString):
                 return any(char.isdigit() for char in inputString)
 
-            def cost_function(parameters,HYGO_params,path):
+            def cost_function(HYGO_params,parameters,path):
                 return 0,0
             
             from .tools.DummyParams import DummyParameters
@@ -972,7 +972,7 @@ class HYGO():
                 f.close()
 
                 # Set the cost function attribute in params
-                params.cost_function = lambda parameters,HYGO_params,path=None : cost_function(parameters,HYGO_params,path)
+                params.cost_function = lambda HYGO_params,parameters,path=None : cost_function(HYGO_params,parameters,path)
                 params.plotter = None
                 
                 # Create an instance of HYGO class with DummyParameters and set the generation

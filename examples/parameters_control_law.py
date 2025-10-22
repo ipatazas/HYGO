@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 
-def check_validity(GEGA_params,parameters):
+def check_validity(HYGO_params,parameters):
     law = parameters[0]
     if law == '0' or law == '0.0':
         return False
@@ -19,7 +19,7 @@ class Parameters:
     name = 'Example' #Name of the experiment REQUIRED
     verbose = True #Display information of the process REQUIRED
     MaxTries = 1000 #Maximum number of operations to create an individual REQUIRED
-    plotter = lambda GEGA_params,GEGA = None : Plotter(GEGA_params,GEGA)
+    plotter = lambda HYGO_params,HYGO = None : Plotter(HYGO_params,HYGO)
     batch_evaluation = False
     batch_size = 1
     validity = check_validity
@@ -35,7 +35,7 @@ class Parameters:
     badvalue = 1e36 #Value assigned to non-valid individuals
     
     #function utilized to evaluate a population
-    cost_function = lambda GEGA_params,parameters,path = None : cost_function(GEGA_params,parameters,path)
+    cost_function = lambda HYGO_params,parameters,path = None : cost_function(HYGO_params,parameters,path)
     individual_paths = False #Option that if true, each individual will have an assigned
                             # forlder of the form output/geni/repj/individualk where information
                             # is saved. It is useful if the cost function requires file loading. 
@@ -186,7 +186,7 @@ from ..hygo.individual import *
 from scipy.integrate import solve_ivp,cumulative_trapezoid
 import time
 
-def cost_function(GEGA_params,parameters,path=None):
+def cost_function(HYGO_params,parameters,path=None):
     '''
     Dummy cost function, it yields the value of cost function given the parameters of an individual,
     it can also serve to measure any experiment since the parameters of each individual are passed
@@ -249,23 +249,23 @@ def cost_function(GEGA_params,parameters,path=None):
                 
                 J.append(Ja[-1][-1] + gamma*Jb[-1][-1])
             else:
-                Ja.append(GEGA_params.badvalue)
-                Jb.append(GEGA_params.badvalue)
-                J.append(GEGA_params.badvalue)
+                Ja.append(HYGO_params.badvalue)
+                Jb.append(HYGO_params.badvalue)
+                J.append(HYGO_params.badvalue)
         except:
-            Ja.append(GEGA_params.badvalue)
-            Jb.append(GEGA_params.badvalue)
-            J.append(GEGA_params.badvalue)
+            Ja.append(HYGO_params.badvalue)
+            Jb.append(HYGO_params.badvalue)
+            J.append(HYGO_params.badvalue)
     print(J)
     return float(np.sum(J)),[J,Ja,Jb]
 
 import matplotlib.pyplot as plt
 
-def Plotter(GEGA_params,GEGA):
+def Plotter(HYGO_params,HYGO):
     
-    best_indiv = GEGA.population[-1].data.loc[0,'Individuals']
+    best_indiv = HYGO.population[-1].data.loc[0,'Individuals']
     
-    params = GEGA.table.individuals[int(best_indiv)].parameters
+    params = HYGO.table.individuals[int(best_indiv)].parameters
     
     R2 = 1 # growth rate
     omega = 1 # freq

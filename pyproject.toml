@@ -1,6 +1,6 @@
 [project]
 name = "HYGO"
-version = "0.9.11"
+version = "0.9.12"
 description = "HYbrid Genetic Optimizer mixing parametric genetic optimization with genetic programming"
 readme = "README.md"
 requires-python = ">=3.7"

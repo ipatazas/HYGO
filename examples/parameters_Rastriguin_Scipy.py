@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-def Rastriguin_cost(GEGA_params,parameters,path=None):
+def Rastriguin_cost(HYGO_params,parameters,path=None):
     '''
     Doomy cost function, it yields the value of cost function given the parameters of an individual,
     it can also serve to measure any experiment since the parameters of each individual are passed
@@ -20,7 +20,7 @@ def Rastriguin_cost(GEGA_params,parameters,path=None):
         for i in range(values.shape[1]):
             J += values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i])
         J = np.sum(np.power(parameters,2),axis=1)
-        return J.tolist(), [0]*GEGA_params.batch_size
+        return J.tolist(), [0]*HYGO_params.batch_size
     else:
         J = 10*values.shape[0]
         for i in range(values.shape[0]):
