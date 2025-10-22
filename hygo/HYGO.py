@@ -174,6 +174,7 @@ class HYGO():
             {'parameter':'CMA_Lambda','type':int,'parent':'ExploitationType','parent_condition':'value=="CMA-ES"','specific':'value>0'},
             {'parameter':'MaxSimplexCycles','type':int,'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','specific':'value>0'},
             {'parameter':'SimplexSize','type':int,'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','specific':'value>0'},
+            {'parameter':'SimplexBatchEvaluation','type':bool,'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','default':False},
             {'parameter':'SimplexPool','type':str,'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','valid_options':['Population','All']},
             {'parameter':'SimplexOffspring','type':int,'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','specific':'value>0'},
             {'parameter':'SimplexInitialization','type':str,'parent':'ExploitationType','parent_condition':'value=="Downhill Simplex"','valid_options':['BestN','ClosestN'],'default':'BestN'},
@@ -553,7 +554,7 @@ class HYGO():
         convergence=False
 
         # Perform the Downhill simplex exploitation if selected
-        checker, convergence = self.exploitation(0,checker,convergence)
+        checker, convergence = self.exploitation(0,checker,convergence,0)
         
         # Continue with the optimisation until the maximum number of generations, 
         #   maximum number of evaluations or convergence
@@ -565,13 +566,13 @@ class HYGO():
             # Check that the last population was evaluated
             if self.population[-1].state=='Evaluated':
                 # Perform the exploitation if necessary
-                checker, convergence = self.exploitation(-1,checker,convergence)
+                checker, convergence = self.exploitation(-1,checker,convergence,len(self.population)-1)
             else:
                 # Evaluate the population
                 checker = self.evaluate_population()
                 
                 # Perform the exploitation
-                checker, convergence = self.exploitation(-1,checker,convergence)
+                checker, convergence = self.exploitation(-1,checker,convergence,len(self.population)-1)
             
             # Check convergence    
             if self.parameters.check_convergence and not convergence:
@@ -584,7 +585,7 @@ class HYGO():
             checker = self.evaluate_population()
             
             # Perform the exploitation
-            checker, convergence = self.exploitation(-1,checker,convergence)
+            checker, convergence = self.exploitation(-1,checker,convergence,len(self.population)-1)
 
         self.reached_convergence=convergence
 
@@ -595,7 +596,7 @@ class HYGO():
             # Show the optimisation rsults
             self.display_convergence()
 
-    def exploitation(self,gen,checker,convergence):
+    def exploitation(self,gen,checker,convergence,gen_idx):
         '''
         Performs the exploitation while checking which steps are required.
         
@@ -612,6 +613,7 @@ class HYGO():
         if hasattr(self.parameters,'exploitation') and self.parameters.exploitation and checker:
             # Perform the Downhill simplex exploitation if selected
             if self.parameters.ExploitationType == 'Downhill Simplex':
+                pop_size = self.parameters.pop_size[gen_idx] + self.parameters.SimplexOffspring if type(self.parameters.pop_size)==list else self.parameters.pop_size + self.parameters.SimplexOffspring
                 
                 # Check that the simplex was initialized
                 if not hasattr(self.population[gen],'simplex_state'):
@@ -619,13 +621,13 @@ class HYGO():
                         print('################ Exploitation for generation '+str(self.population[gen].generation)+' ################')
                         
                     self.population[gen].initialize_simplex(self.parameters,self.table)
-                    self.table,checker,convergence = self.population[gen].exploitation_simplex(self.parameters,self.table,self.output_path)
+                    self.table,checker,convergence = self.population[gen].exploitation_simplex(self.parameters,self.table,self.output_path,pop_size)
                 # Check that the simplex was finised
                 elif not self.population[gen].simplex_state=='Simplex done' and self.population[gen].simplex_state=='Exploitation initialized':
                     if self.parameters.verbose:
                         print('################ Exploitation for generation '+str(self.population[gen].generation)+' ################')
                     
-                    self.table,checker,convergence = self.population[gen].exploitation_simplex(self.parameters,self.table,self.output_path)
+                    self.table,checker,convergence = self.population[gen].exploitation_simplex(self.parameters,self.table,self.output_path,pop_size)
             elif self.parameters.ExploitationType == 'CMA-ES':
                 # Compute the exploitation
                 # Check that the simplex was initialized

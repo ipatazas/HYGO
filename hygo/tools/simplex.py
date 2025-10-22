@@ -262,7 +262,7 @@ class Simplex:
         if HYGO_params.verbose:
             print('     --->DONE')
 
-    def exploitation_simplex(self,HYGO_params,HYGO_table,path):
+    def exploitation_simplex(self,HYGO_params,HYGO_table,path,pop_size):
         """
         Executes the exploitation phase using the Downhill Simplex method.
 
@@ -276,7 +276,7 @@ class Simplex:
         """
         
         # Obtain the total number of individuals that the population should have after the simplex is completed
-        pop_size = HYGO_params.pop_size + HYGO_params.SimplexOffspring
+        # pop_size = HYGO_params.pop_size + HYGO_params.SimplexOffspring
         
         # Obtain the current number of individuals in the population
         nind = self.data.shape[0]
@@ -341,7 +341,7 @@ class Simplex:
             self.simplex_cycle_checker = False
             
             # Simplex procedure
-            if hasattr(HYGO_params,'batch_evaluation') and hasattr(HYGO_params,'batch_size') and HYGO_params.batch_evaluation:
+            if hasattr(HYGO_params,'SimplexBatchEvaluation') and hasattr(HYGO_params,'batch_size') and HYGO_params.SimplexBatchEvaluation:
                 HYGO_table,checker = self.simplex_batch_cyle(HYGO_params,HYGO_table,path)
             else:
                 HYGO_table,checker = self.simplex_Reflection(HYGO_params,HYGO_table,path)

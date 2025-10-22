@@ -136,7 +136,7 @@ class Parameters:
                                # or just the population pool REQUIRED
     SimplexOffspring = 20 # Can be an integer or a list of integers including the number of individuals
                          # that will be generated through the explotation
-                             
+    SimplexBatchEvaluation = False
     SimplexInitialization = 'BestN' #How the simplex is initialized REQUIRED
                                     #   BestN: The best individuals in the population/table
                                     #   ClosestN: Closest individuals in the population/table

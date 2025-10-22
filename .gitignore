@@ -16,3 +16,4 @@ test*
 
 # Ignore cache files
 __pycache__/
+*.pyc

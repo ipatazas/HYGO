@@ -21,20 +21,17 @@ def Rastriguin_cost(HYGO_params,parameters,path=None):
         J_terms(list): all cost values from which the J is derived
     '''
     values = np.array(parameters)
-    import time
-    time.sleep(0.1)
-    i = 1/int(np.random.randint(0,10,1))
 
     if len(values.shape)>1:
         J = 10*values.shape[1]
         for i in range(values.shape[1]):
-            J += (values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i]))
+            J += values[:,i]**2 - 10*np.cos(2*np.pi*values[:,i])
         J = np.sum(np.power(parameters,2),axis=1)
         return J.tolist(), [0]*HYGO_params.batch_size
     else:
         J = 10*values.shape[0]
         for i in range(values.shape[0]):
-            J += (values[i]**2 - 10*np.cos(2*np.pi*values[i]))
+            J += values[i]**2 - 10*np.cos(2*np.pi*values[i])
         return float(J), 0
 
 def Rastriguin_plotter(GA_params,GA):
@@ -91,7 +88,7 @@ class Parameters:
     pop_size = 30 #Individuals per generation, can be a int or a list with the
                     # number of inds per generation REQUIRED
     ngen = 5 #Number of gens REQUIRED
-    repetitions = 2 #Number of repetitions for each individual REQUIRED
+    repetitions = 1 #Number of repetitions for each individual REQUIRED
     uncertainty = 0.05
     repeat_indivs_outside_uncertainty = True
     
@@ -155,6 +152,7 @@ class Parameters:
     MaxSimplexCycles = 100 # Maximum number of cycles REQUIRED
     SimplexSize = 10 #It can be an int or a list of ints containing the number of individuals being
                      # considered for the exploitation REQUIRED
+    SimplexBatchEvaluation = False
     ExploitationType = 'Downhill Simplex' #Explotation type, only Downhill Simplex available for now
     SimplexPool = 'Population' #Select Population or All if the individuals considered for an explotation
                                # step in a given population take into account the whole individual pool REQUIRED

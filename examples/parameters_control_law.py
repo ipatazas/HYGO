@@ -140,6 +140,7 @@ class Parameters:
     MaxSimplexCycles = 100 # Maximum number of cycles REQUIRED
     SimplexSize = 10 #It can be an int or a list of ints containing the number of individuals being
                      # considered for the exploitation REQUIRED
+    SimplexBatchEvaluation = False
     ExploitationType = 'Downhill Simplex' #Explotation type, only Downhill Simplex available for now
     SimplexPool = 'Population' #Select Population or All if the individuals considered for an explotation
                                # step in a given population take into account the whole individual pool REQUIRED
