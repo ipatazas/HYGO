@@ -383,7 +383,8 @@ class Individual():
             for i in range(len(operations['op'])):
                 if operations['op'][i]==operator:
                     for j in range(operations['n_args'][i]):
-                        exec('arg'+str(j)+'='+'self.simplify_my_law(HYGO_params,old_law[operators_spaces[j]+1:operators_spaces[j+1]])')
+                        #exec('arg'+str(j)+'='+'self.simplify_my_law(HYGO_params,old_law[operators_spaces[j]+1:operators_spaces[j+1]])')
+                        globals()['arg'+str(j)] = self.simplify_my_law(HYGO_params,old_law[operators_spaces[j]+1:operators_spaces[j+1]])
                         new_law = eval('new_law.replace(old_law[operators_spaces[j]+1:operators_spaces[j+1]],'+'arg'+str(j)+')')
                     for j in range(len(operations['simplification_cond'][i])):
                         if eval(operations['simplification_cond'][i][j]):

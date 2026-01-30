@@ -653,7 +653,7 @@ class Population(Simplex,CMA_ES,API_Scipy):
 
                 cost = self.data.loc[j, 'Costs']
                 # Skip if already evaluated
-                if pd.notna(cost)[0] and not np.isclose(float(cost), -1, atol=1e-9):
+                if pd.notna(cost) and not np.isclose(float(cost), -1, atol=1e-9):
                     HYGO_table.individuals[int(self.data.loc[j,'Individuals'])].cost = HYGO_params.badvalue
                     self.data.loc[j, (rep_name,'Cost_terms')] = np.nan
                     self.data.loc[j, (rep_name,'Evaluation_time')] = np.nan
